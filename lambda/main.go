@@ -4,8 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"time"
+	"os"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -16,8 +17,6 @@ import (
 var (
 	// ErrNameNotProvided is thrown when a name is not provided
 	ErrObjectNotFound = errors.New("requested object was not found in bucket")
-	CloudflareDomain string = "https://xxxxx.cloudfront.net"
-	SignerId string = "REPLACE_ME"
 )
 
 // Handler is your Lambda function handler
@@ -27,18 +26,18 @@ func Handler(request events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPRes
 
 	expireAt := time.Now().Add(90 * time.Minute)
 	objectKey := request.RawPath
-	key := `-----BEGIN RSA PRIVATE KEY-----
-	PASTE KEY HERE
------END RSA PRIVATE KEY-----
-`
-	object_url := fmt.Sprintf("%s%s",  CloudflareDomain, objectKey)
+	key := os.Getenv("SIGNING_PRIVATE_KEY")
+	id := os.Getenv("SIGNING_PUBLIC_ID")
+	cloudfrontDomain := os.Getenv("CLOUDFRONT_DOMAIN")
+
+	object_url := fmt.Sprintf("https://%s%s", cloudfrontDomain , objectKey)
 
 	keyReader := strings.NewReader(key)
 	privKey, err := sign.LoadPEMPrivKey(keyReader)
 	if err != nil {
 		log.Fatal("failed to load priv key:", err)
 	}
-	signer := sign.NewURLSigner(SignerId, privKey)
+	signer := sign.NewURLSigner(id, privKey)
 	signedURL, err := signer.Sign(object_url, expireAt)
 	if err != nil {
 		log.Fatal("generate signed url failed:", err)
