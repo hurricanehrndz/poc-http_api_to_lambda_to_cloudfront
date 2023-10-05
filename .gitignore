@@ -109,3 +109,7 @@ override.tf.json
 .terraformrc
 terraform.rc
 
+### direnv
+.direnv
+.envrc
+

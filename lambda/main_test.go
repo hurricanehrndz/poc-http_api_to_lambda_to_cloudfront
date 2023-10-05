@@ -10,13 +10,13 @@ import (
 func TestHandler(t *testing.T) {
 
 	tests := []struct {
-		request events.APIGatewayProxyRequest
+		request events.APIGatewayV2HTTPRequest
 		expect  int
 	}{
 		{
 			// Test that the handler responds with the correct response
 			// when a valid name is provided in the HTTP body
-			request: events.APIGatewayProxyRequest{PathParameters: map[string]string{"proxy": "000.jpg"}},
+			request: events.APIGatewayV2HTTPRequest{RawPath: "/000.jpg"},
 			expect:  302,
 		},
 	}
